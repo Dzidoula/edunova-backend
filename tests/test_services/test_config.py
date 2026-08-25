@@ -16,3 +16,12 @@ def test_env_override(monkeypatch):
     settings = get_settings()
     assert settings.secret_key == "test-secret"
     get_settings.cache_clear()
+
+
+def test_upload_dir_is_resolved_to_absolute_path(monkeypatch):
+    monkeypatch.setenv("EDUNOVA_UPLOAD_DIR", "relative-uploads")
+    get_settings.cache_clear()
+    settings = get_settings()
+    assert os.path.isabs(settings.upload_dir)
+    assert settings.upload_dir.endswith("relative-uploads")
+    get_settings.cache_clear()

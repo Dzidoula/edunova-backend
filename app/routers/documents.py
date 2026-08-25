@@ -1,3 +1,4 @@
+import logging
 import os
 import uuid
 from typing import Optional
@@ -16,6 +17,7 @@ from app.services.knowledge_base import chunk_text
 from app.services.text_extraction import extract_text_from_file
 
 router = APIRouter(prefix="/documents", tags=["documents"])
+logger = logging.getLogger(__name__)
 
 
 def _reindex(db: Session, document: Document) -> None:
@@ -116,6 +118,8 @@ def rerun_ocr(document_id: str, current_user: User = Depends(get_current_user), 
     document = _get_owned_document(db, document_id, current_user)
     if not document.file_path:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Aucun fichier source à relire en OCR.")
+    if not os.path.exists(document.file_path):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Le fichier source est introuvable sur le serveur.")
     text, _method = extract_text_from_file(document.file_path, use_ocr_if_needed=True, ocr_engine=current_user.ocr_engine)
     if text.strip():
         document.extracted_text = text
@@ -128,5 +132,12 @@ def rerun_ocr(document_id: str, current_user: User = Depends(get_current_user), 
 @router.delete("/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_document(document_id: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> None:
     document = _get_owned_document(db, document_id, current_user)
+    file_path = document.file_path
     db.delete(document)
     db.commit()
+    if file_path:
+        try:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+        except OSError as e:
+            logger.warning("Failed to remove upload file %s: %s", file_path, e)

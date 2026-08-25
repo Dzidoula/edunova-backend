@@ -1,4 +1,7 @@
 import io
+import os
+
+from app.core.config import get_settings
 
 
 def _auth_headers(client):
@@ -81,3 +84,50 @@ def test_create_document_requires_auth(client):
         data={"title": "Doc", "subject": "Maths", "document_type": "course", "text_override": "x" * 50},
     )
     assert response.status_code in (401, 403)
+
+
+def test_delete_document_removes_uploaded_file_from_disk(client):
+    headers = _auth_headers(client)
+    create_resp = client.post(
+        "/documents",
+        headers=headers,
+        data={"title": "Avec fichier", "subject": "Maths", "document_type": "course"},
+        files={"file": ("notes.txt", io.BytesIO(b"Contenu du fichier uploade."), "text/plain")},
+    )
+    assert create_resp.status_code == 201
+    doc_id = create_resp.json()["id"]
+
+    settings = get_settings()
+    # The file path isn't exposed via the API, so locate it by scanning upload_dir.
+    matches = []
+    for root, _dirs, files in os.walk(settings.upload_dir):
+        for name in files:
+            if name.endswith("notes.txt"):
+                matches.append(os.path.join(root, name))
+    assert matches, "expected uploaded file to exist on disk after creation"
+    file_path = matches[0]
+    assert os.path.exists(file_path)
+
+    delete_resp = client.delete(f"/documents/{doc_id}", headers=headers)
+    assert delete_resp.status_code == 204
+    assert not os.path.exists(file_path)
+
+
+def test_rerun_ocr_returns_400_when_source_file_missing(client):
+    headers = _auth_headers(client)
+    create_resp = client.post(
+        "/documents",
+        headers=headers,
+        data={"title": "Avec fichier", "subject": "Maths", "document_type": "course"},
+        files={"file": ("scan.txt", io.BytesIO(b"Contenu original."), "text/plain")},
+    )
+    doc_id = create_resp.json()["id"]
+
+    settings = get_settings()
+    for root, _dirs, files in os.walk(settings.upload_dir):
+        for name in files:
+            if name.endswith("scan.txt"):
+                os.remove(os.path.join(root, name))
+
+    response = client.post(f"/documents/{doc_id}/ocr", headers=headers)
+    assert response.status_code == 400
