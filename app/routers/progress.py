@@ -3,19 +3,15 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.deps import get_current_user
-from app.models.pedagogical_memory import PedagogicalMemory
 from app.models.progress import Progress
 from app.models.user import User
 from app.schemas.progress import ErrorAnalysisOut, ProgressOut, ProgressResultRequest, ProgressResultResponse
 from app.services.error_analysis import ERROR_LABELS
 from app.services.mastery import compute_mastery
+from app.services.memory import remember as _remember
 from app.services.tutor import Tutor
 
 router = APIRouter(prefix="/progress", tags=["progress"])
-
-
-def _remember(db: Session, user: User, memory_type: str, content: str, subject: str, notion: str, weight: float) -> None:
-    db.add(PedagogicalMemory(user_id=user.id, memory_type=memory_type, subject=subject, notion=notion, content=content[:2000], weight=weight))
 
 
 @router.get("", response_model=list[ProgressOut])

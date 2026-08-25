@@ -13,6 +13,7 @@ from app.models.user import User
 from app.schemas.chat import ChatMessageOut, ChatRequest, ChatResponse
 from app.services.error_analysis import classify_error_heuristic
 from app.services.knowledge_base import VectorKnowledgeBase
+from app.services.memory import remember as _remember
 from app.services.tutor import Tutor
 
 router = APIRouter(prefix="/chat", tags=["chat"])
@@ -22,14 +23,6 @@ CONFUSION_KEYWORDS = (
     "explique autrement", "réexplique", "je suis perdu", "j'ai rien compris",
 )
 APPRECIATION_KEYWORDS = ("merci", "j'ai compris", "c'est clair", "ok je vois")
-
-
-def _remember(db: Session, user: User, memory_type: str, content: str, subject: str = "", notion: str = "", weight: float = 1.0) -> None:
-    content = (content or "").strip()
-    if not content:
-        return
-    db.add(PedagogicalMemory(user_id=user.id, memory_type=memory_type, subject=subject, notion=notion, content=content[:2000], weight=weight))
-    db.commit()
 
 
 @router.post("", response_model=ChatResponse)
