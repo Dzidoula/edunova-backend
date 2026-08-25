@@ -29,3 +29,44 @@ def test_update_settings_persists(client):
 def test_settings_requires_auth(client):
     response = client.get("/settings")
     assert response.status_code in (401, 403)
+
+
+def test_get_settings_masks_api_key(client):
+    headers = _login(client)
+    put_response = client.put(
+        "/settings",
+        headers=headers,
+        json={"api_key": "gsk_supersecretvalue1234", "api_base": "https://api.groq.com/openai/v1", "model": "llama-3.1-8b-instant", "ocr_engine": "tesseract"},
+    )
+    # PUT should also mask the key in its response (same read-serialization path as GET).
+    assert put_response.json()["api_key"] != "gsk_supersecretvalue1234"
+
+    get_response = client.get("/settings", headers=headers)
+    body = get_response.json()
+    assert body["api_key"] != "gsk_supersecretvalue1234"
+    assert body["api_key"].endswith("1234")
+    assert "supersecret" not in body["api_key"]
+
+
+def test_get_settings_masks_empty_api_key_as_empty(client):
+    headers = _login(client)
+    response = client.get("/settings", headers=headers)
+    assert response.json()["api_key"] == ""
+
+
+def test_put_settings_stores_full_api_key(client):
+    headers = _login(client)
+    client.put(
+        "/settings",
+        headers=headers,
+        json={"api_key": "gsk_fullkeyvalue9999", "api_base": "https://api.groq.com/openai/v1", "model": "llama-3.1-8b-instant", "ocr_engine": "tesseract"},
+    )
+    # A subsequent PUT with a real key must be accepted and stored in full, not treated
+    # as a masked placeholder. We can't read the raw key back via the API (by design),
+    # so verify indirectly: update again with a new key and confirm the masked suffix changes.
+    response = client.put(
+        "/settings",
+        headers=headers,
+        json={"api_key": "gsk_anotherkeyvalue8888", "api_base": "https://api.groq.com/openai/v1", "model": "llama-3.1-8b-instant", "ocr_engine": "tesseract"},
+    )
+    assert response.json()["api_key"].endswith("8888")
