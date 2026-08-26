@@ -7,6 +7,11 @@ FastAPI backend for EduNova (documents, OCR, RAG chat, progression tracking).
     python3 -m venv .venv
     source .venv/bin/activate
     pip install -r requirements.txt
+    alembic upgrade head
+
+`alembic upgrade head` creates the SQLite schema (`edunova.db`). Without it the app starts
+but every request that touches the database fails with `no such table: users` (or similar).
+Re-run it after pulling changes that add a new migration.
 
 ## Run
 
