@@ -70,3 +70,54 @@ def test_put_settings_stores_full_api_key(client):
         json={"api_key": "gsk_anotherkeyvalue8888", "api_base": "https://api.groq.com/openai/v1", "model": "llama-3.1-8b-instant", "ocr_engine": "tesseract"},
     )
     assert response.json()["api_key"].endswith("8888")
+
+
+def test_put_settings_omitting_api_key_preserves_existing_key(client):
+    headers = _login(client)
+    client.put(
+        "/settings",
+        headers=headers,
+        json={"api_key": "gsk_originalkeyvalue7777", "api_base": "https://api.groq.com/openai/v1", "model": "llama-3.1-8b-instant", "ocr_engine": "tesseract"},
+    )
+
+    # Omit api_key entirely; only change an unrelated field (model).
+    response = client.put(
+        "/settings",
+        headers=headers,
+        json={"api_base": "https://api.groq.com/openai/v1", "model": "llama-3.3-70b-versatile", "ocr_engine": "tesseract"},
+    )
+    assert response.status_code == 200
+    assert response.json()["model"] == "llama-3.3-70b-versatile"
+    # The masked key should still reflect the original stored key, not have been wiped.
+    assert response.json()["api_key"].endswith("7777")
+
+    get_response = client.get("/settings", headers=headers)
+    assert get_response.json()["api_key"].endswith("7777")
+
+
+def test_put_settings_with_null_api_key_preserves_existing_key(client):
+    headers = _login(client)
+    client.put(
+        "/settings",
+        headers=headers,
+        json={"api_key": "gsk_nullcheckvalue6666", "api_base": "https://api.groq.com/openai/v1", "model": "llama-3.1-8b-instant", "ocr_engine": "tesseract"},
+    )
+
+    response = client.put(
+        "/settings",
+        headers=headers,
+        json={"api_key": None, "api_base": "https://api.groq.com/openai/v1", "model": "llama-3.1-8b-instant", "ocr_engine": "auto"},
+    )
+    assert response.status_code == 200
+    assert response.json()["ocr_engine"] == "auto"
+    assert response.json()["api_key"].endswith("6666")
+
+
+def test_put_settings_with_real_key_still_updates(client):
+    headers = _login(client)
+    response = client.put(
+        "/settings",
+        headers=headers,
+        json={"api_key": "gsk_freshkeyvalue5555", "api_base": "https://api.groq.com/openai/v1", "model": "llama-3.1-8b-instant", "ocr_engine": "tesseract"},
+    )
+    assert response.json()["api_key"].endswith("5555")

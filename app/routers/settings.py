@@ -33,7 +33,8 @@ def update_settings(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> SettingsOut:
-    current_user.api_key = payload.api_key.strip()
+    if payload.api_key is not None:
+        current_user.api_key = payload.api_key.strip()
     current_user.api_base = payload.api_base.strip()
     current_user.model = payload.model.strip()
     current_user.ocr_engine = payload.ocr_engine.strip()

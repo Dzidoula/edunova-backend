@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -11,7 +13,7 @@ class SettingsOut(BaseModel):
 
 
 class SettingsUpdate(BaseModel):
-    api_key: str
+    api_key: Optional[str] = None
     api_base: str
     model: str
     ocr_engine: str
