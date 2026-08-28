@@ -14,7 +14,7 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
     api_key: Mapped[str] = mapped_column(String(256), default="")
     api_base: Mapped[str] = mapped_column(String(256), default="https://api.groq.com/openai/v1")
-    model: Mapped[str] = mapped_column(String(128), default="llama-3.3-70b-versatile")
+    model: Mapped[str] = mapped_column(String(128), default="openai/gpt-oss-120b")
     ocr_engine: Mapped[str] = mapped_column(String(32), default="auto")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 

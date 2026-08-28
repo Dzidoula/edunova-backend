@@ -63,13 +63,13 @@ def format_api_error(err: Exception) -> str:
     if "connection" in msg or "network" in msg or "connect" in msg:
         return "⚠️ Problème de connexion internet.\nVérifie ton réseau puis réessaie."
     if "model" in msg and ("not found" in msg or "does not exist" in msg):
-        return "⚠️ Modèle introuvable.\nDans Paramètres, choisis un modèle valide (ex: llama-3.3-70b-versatile)."
+        return "⚠️ Modèle introuvable.\nDans Paramètres, choisis un modèle valide (ex: openai/gpt-oss-120b)."
     return f"⚠️ Erreur API : {err}\n\nTu peux réessayer ou utiliser le mode local (sans clé)."
 
 
 class Tutor:
     def __init__(self, api_key: str, api_base: str, model: str):
-        self.model = model or "llama-3.3-70b-versatile"
+        self.model = model or "openai/gpt-oss-120b"
         self.client = None
         self.available = False
         key = (api_key or "").strip()

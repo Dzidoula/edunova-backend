@@ -7,7 +7,7 @@ def test_default_settings(monkeypatch):
     get_settings.cache_clear()
     settings = get_settings()
     assert settings.database_url == "sqlite:///./edunova.db"
-    assert settings.default_model == "llama-3.3-70b-versatile"
+    assert settings.default_model == "openai/gpt-oss-120b"
 
 
 def test_env_override(monkeypatch):

@@ -8,7 +8,7 @@ def test_get_default_settings(client):
     response = client.get("/settings", headers=headers)
     assert response.status_code == 200
     body = response.json()
-    assert body["model"] == "llama-3.3-70b-versatile"
+    assert body["model"] == "openai/gpt-oss-120b"
     assert body["ocr_engine"] == "auto"
 
 

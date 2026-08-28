@@ -30,7 +30,7 @@ All configuration is read from environment variables prefixed with `EDUNOVA_` (s
 | `EDUNOVA_SECRET_KEY` | Secret used to sign JWT access tokens. | `dev-secret-change-me` |
 | `EDUNOVA_DATABASE_URL` | SQLAlchemy database URL. | `sqlite:///./edunova.db` |
 | `EDUNOVA_DEFAULT_API_BASE` | Default LLM API base URL used when a user hasn't configured their own. | `https://api.groq.com/openai/v1` |
-| `EDUNOVA_DEFAULT_MODEL` | Default LLM model name used when a user hasn't configured their own. | `llama-3.3-70b-versatile` |
+| `EDUNOVA_DEFAULT_MODEL` | Default LLM model name used when a user hasn't configured their own. | `openai/gpt-oss-120b` |
 | `EDUNOVA_ACCESS_TOKEN_EXPIRE_MINUTES` | JWT access token lifetime, in minutes. | `43200` (30 days) |
 | `EDUNOVA_FRONTEND_ORIGIN` | Origin allowed by CORS to call this API. | `http://localhost:5173` |
 | `EDUNOVA_UPLOAD_DIR` | Directory where uploaded documents are stored. Resolved to an absolute path at startup regardless of the process's working directory. | `uploads` |
