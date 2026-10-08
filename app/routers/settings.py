@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.core.urlcheck import validate_api_base
 from app.db.session import get_db
 from app.deps import get_current_user
 from app.models.user import User
@@ -35,7 +36,10 @@ def update_settings(
 ) -> SettingsOut:
     if payload.api_key is not None:
         current_user.api_key = payload.api_key.strip()
-    current_user.api_base = payload.api_base.strip()
+    try:
+        current_user.api_base = validate_api_base(payload.api_base)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
     current_user.model = payload.model.strip()
     current_user.ocr_engine = payload.ocr_engine.strip()
     db.commit()

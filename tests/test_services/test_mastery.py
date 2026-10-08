@@ -5,7 +5,7 @@ def test_fewer_than_two_attempts_is_unknown():
     assert compute_mastery(success=1, failure=0) == "unknown"
 
 
-def test_three_or_more_failures_is_difficulty():
+def test_many_failures_with_low_ratio_is_difficulty():
     assert compute_mastery(success=1, failure=3) == "difficulty"
 
 
@@ -19,3 +19,7 @@ def test_middling_ratio_is_to_strengthen():
 
 def test_high_ratio_is_mastered():
     assert compute_mastery(success=8, failure=1) == "mastered"  # 8/9 ≈ 0.89
+
+
+def test_mastery_recovers_after_early_failures():
+    assert compute_mastery(success=30, failure=3) == "mastered"

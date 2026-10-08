@@ -1,5 +1,5 @@
 def test_full_learner_journey(client):
-    login = client.post("/auth/login", json={"username": "amina"})
+    login = client.post("/auth/login", json={"username": "amina", "password": "secret123"})
     headers = {"Authorization": f"Bearer {login.json()['token']}"}
 
     create_resp = client.post(

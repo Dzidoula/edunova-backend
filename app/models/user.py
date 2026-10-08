@@ -12,6 +12,7 @@ class User(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     username: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
+    password_hash: Mapped[str] = mapped_column(String(128), default="")
     api_key: Mapped[str] = mapped_column(String(256), default="")
     api_base: Mapped[str] = mapped_column(String(256), default="https://api.groq.com/openai/v1")
     model: Mapped[str] = mapped_column(String(128), default="openai/gpt-oss-120b")

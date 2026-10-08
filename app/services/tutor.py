@@ -169,6 +169,15 @@ class Tutor:
                 "content": f"Document : « {document_title} ».\nContenu :\n{document_text[:6000]}",
             })
 
+        elif document_title:
+            messages.append({
+                "role": "system",
+                "content": (
+                    f"Document « {document_title} » sans texte extractible. "
+                    "Demande à l'élève de coller un extrait ou de relancer l'OCR."
+                ),
+            })
+
         if pedagogical_snippets:
             messages.append({
                 "role": "system",

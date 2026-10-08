@@ -3,7 +3,7 @@ user A's resources via any of these endpoints."""
 
 
 def _login(client, username):
-    response = client.post("/auth/login", json={"username": username})
+    response = client.post("/auth/login", json={"username": username, "password": "secret123"})
     return {"Authorization": f"Bearer {response.json()['token']}"}
 
 

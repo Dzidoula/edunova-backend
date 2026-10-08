@@ -1,5 +1,5 @@
 def _login(client, username="koffi"):
-    response = client.post("/auth/login", json={"username": username})
+    response = client.post("/auth/login", json={"username": username, "password": "secret123"})
     return {"Authorization": f"Bearer {response.json()['token']}"}
 
 

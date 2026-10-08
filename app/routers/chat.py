@@ -11,7 +11,6 @@ from app.models.knowledge_chunk import KnowledgeChunk
 from app.models.pedagogical_memory import PedagogicalMemory
 from app.models.user import User
 from app.schemas.chat import ChatMessageOut, ChatRequest, ChatResponse
-from app.services.error_analysis import classify_error_heuristic
 from app.services.knowledge_base import VectorKnowledgeBase
 from app.services.memory import remember as _remember
 from app.services.tutor import Tutor
@@ -33,11 +32,14 @@ def chat(payload: ChatRequest, current_user: User = Depends(get_current_user), d
         if document is None or document.user_id != current_user.id:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document introuvable.")
 
+    tutor = Tutor(api_key=current_user.api_key, api_base=current_user.api_base, model=current_user.model)
     lower = payload.message.lower()
     subject = document.subject if document else ""
+    active_adaptation: Optional[str] = None
     if any(w in lower for w in CONFUSION_KEYWORDS):
-        etype = classify_error_heuristic(payload.message, notion="")
-        _remember(db, current_user, "confusion", f"Confusion détectée ({etype.value}).\nMessage : {payload.message[:300]}", subject=subject, weight=1.7)
+        analysis = tutor.analyze_error(payload.message, notion="", subject=subject)
+        active_adaptation = analysis.strategy
+        _remember(db, current_user, "confusion", analysis.as_memory_text() + f"\nMessage : {payload.message[:300]}", subject=subject, weight=1.7)
     if any(w in lower for w in APPRECIATION_KEYWORDS):
         _remember(db, current_user, "strategy", f"Approche appréciée suite à : « {payload.message[:200]} ». Réutiliser un style similaire.", subject=subject, weight=1.2)
 
@@ -65,7 +67,6 @@ def chat(payload: ChatRequest, current_user: User = Depends(get_current_user), d
     )
     history = [{"role": "assistant" if m.role == "tutor" else m.role, "content": m.content} for m in reversed(history_rows)]
 
-    tutor = Tutor(api_key=current_user.api_key, api_base=current_user.api_base, model=current_user.model)
     reply = tutor.reply(
         message=payload.message,
         document_text=document.extracted_text if document else None,
@@ -73,7 +74,7 @@ def chat(payload: ChatRequest, current_user: User = Depends(get_current_user), d
         retrieved_chunks=retrieved,
         pedagogical_snippets=pedagogical_snippets,
         history=history,
-        active_adaptation=None,
+        active_adaptation=active_adaptation,
     )
 
     db.add(ChatMessage(user_id=current_user.id, document_id=document.id if document else None, role="user", content=payload.message))

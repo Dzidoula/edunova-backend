@@ -9,8 +9,10 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.3
+      - key: EDUNOVA_ENV
+        value: production
       - key: EDUNOVA_SECRET_KEY
-        sync: false
+        generateValue: true
       - key: EDUNOVA_FRONTEND_ORIGIN
         sync: false
       - key: EDUNOVA_DATABASE_URL

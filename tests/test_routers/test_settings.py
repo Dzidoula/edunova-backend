@@ -1,5 +1,5 @@
 def _login(client, username="koffi"):
-    response = client.post("/auth/login", json={"username": username})
+    response = client.post("/auth/login", json={"username": username, "password": "secret123"})
     return {"Authorization": f"Bearer {response.json()['token']}"}
 
 
@@ -121,3 +121,14 @@ def test_put_settings_with_real_key_still_updates(client):
         json={"api_key": "gsk_freshkeyvalue5555", "api_base": "https://api.groq.com/openai/v1", "model": "llama-3.1-8b-instant", "ocr_engine": "tesseract"},
     )
     assert response.json()["api_key"].endswith("5555")
+
+
+def test_update_settings_rejects_internal_api_base(client):
+    headers = _login(client)
+    for bad in ["http://169.254.169.254/", "http://127.0.0.1:8000", "ftp://example.com", ""]:
+        response = client.put(
+            "/settings",
+            json={"api_base": bad, "model": "m", "ocr_engine": "auto"},
+            headers=headers,
+        )
+        assert response.status_code == 422, bad

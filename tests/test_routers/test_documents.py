@@ -5,7 +5,7 @@ from app.core.config import get_settings
 
 
 def _auth_headers(client):
-    response = client.post("/auth/login", json={"username": "koffi"})
+    response = client.post("/auth/login", json={"username": "koffi", "password": "secret123"})
     token = response.json()["token"]
     return {"Authorization": f"Bearer {token}"}
 
@@ -36,7 +36,7 @@ def test_list_documents_only_returns_current_user_documents(client):
         data={"title": "Doc A", "subject": "Maths", "document_type": "course", "text_override": "Contenu A suffisant pour compter."},
     )
 
-    response_login_b = client.post("/auth/login", json={"username": "amina"})
+    response_login_b = client.post("/auth/login", json={"username": "amina", "password": "secret123"})
     headers_b = {"Authorization": f"Bearer {response_login_b.json()['token']}"}
 
     response = client.get("/documents", headers=headers_b)

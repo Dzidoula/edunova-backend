@@ -23,9 +23,9 @@ def chunk_text(text: str, max_chars: int = 900, overlap: int = 120) -> List[str]
         chunk = text[start:end].strip()
         if chunk:
             chunks.append(chunk)
-        start = max(end - overlap, start + 1)
-        if start >= len(text):
+        if end >= len(text):
             break
+        start = max(end - overlap, start + 1)
     return chunks
 
 

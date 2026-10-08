@@ -27,3 +27,12 @@ def test_chunk_text_splits_long_text_with_overlap():
     chunks = chunk_text(text, max_chars=200, overlap=20)
     assert len(chunks) > 1
     assert all(len(c) <= 220 for c in chunks)
+
+
+def test_chunk_text_has_no_tail_fragments():
+    from app.services.knowledge_base import chunk_text
+
+    text = ("Une phrase de test assez longue. " * 160).strip()
+    chunks = chunk_text(text)
+    assert len(chunks) <= len(text) // 700 + 2
+    assert all(len(c) > 100 for c in chunks[:-1])

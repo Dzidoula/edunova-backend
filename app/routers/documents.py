@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.core.config import get_settings
 from app.db.session import get_db
 from app.deps import get_current_user
+from app.models.chat_message import ChatMessage
 from app.models.document import Document
 from app.models.knowledge_chunk import KnowledgeChunk
 from app.models.user import User
@@ -133,6 +134,7 @@ def rerun_ocr(document_id: str, current_user: User = Depends(get_current_user), 
 def delete_document(document_id: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> None:
     document = _get_owned_document(db, document_id, current_user)
     file_path = document.file_path
+    db.query(ChatMessage).filter(ChatMessage.document_id == document.id).delete(synchronize_session=False)
     db.delete(document)
     db.commit()
     if file_path:
